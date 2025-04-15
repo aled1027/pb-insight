@@ -126,9 +126,8 @@
                 <tr>
                   <th>Date</th>
                   <th>Event</th>
-                  <th>Venue</th>
+                  <th class="min-w-[25ch]">Player and Partner</th>
                   <th class="min-w-[25ch]">Opponent</th>
-                  <th class="min-w-[25ch]">Partner</th>
                   <th>Score</th>
                   <th>Result</th>
                 </tr>
@@ -146,25 +145,28 @@
                     )}
                     <tr>
                       <td>{new Date(match.eventDate).toLocaleDateString()}</td>
-                      <td class="truncate">{match.eventName.slice(0, 20)}</td>
-                      <td>{match.venue}</td>
                       <td>
-                        {#if opponentTeam}
-                          {opponentTeam.player1.fullName} ({opponentTeam.player1
-                            .postMatchRating.doubles})
-                          <br />
-                          {opponentTeam.player2.fullName} ({opponentTeam.player2
-                            .postMatchRating.doubles})
-                        {/if}
+                        <div class="truncate">
+                          {match.eventName.slice(0, 20)}
+                        </div>
+                        <div class="text-sm opacity-70">{match.venue}</div>
                       </td>
                       <td>
                         {#if playerTeam}
-                          {playerTeam.player1.id === player?.id
-                            ? playerTeam.player2.fullName
-                            : playerTeam.player1.fullName}
-                          ({playerTeam.player1.id === player?.id
-                            ? playerTeam.player2.postMatchRating.doubles
-                            : playerTeam.player1.postMatchRating.doubles})
+                          {@html playerTeam.player1.id === player?.id
+                            ? `${playerTeam.player1.fullName} <span class="opacity-70">(${playerTeam.player1.postMatchRating.doubles})</span>`
+                            : `${playerTeam.player2.fullName} <span class="opacity-70">(${playerTeam.player2.postMatchRating.doubles})</span>`}
+                          <br />
+                          {@html playerTeam.player1.id === player?.id
+                            ? `${playerTeam.player2.fullName} <span class="opacity-70">(${playerTeam.player2.postMatchRating.doubles})</span>`
+                            : `${playerTeam.player1.fullName} <span class="opacity-70">(${playerTeam.player1.postMatchRating.doubles})</span>`}
+                        {/if}
+                      </td>
+                      <td>
+                        {#if opponentTeam}
+                          {@html `${opponentTeam.player1.fullName} <span class="opacity-70">(${opponentTeam.player1.postMatchRating.doubles})</span>`}
+                          <br />
+                          {@html `${opponentTeam.player2.fullName} <span class="opacity-70">(${opponentTeam.player2.postMatchRating.doubles})</span>`}
                         {/if}
                       </td>
                       <td>
