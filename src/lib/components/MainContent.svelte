@@ -5,6 +5,7 @@
     ApiPlayerProfile,
     ApiMatchResponse,
     ApiMatchTeam,
+    ApiMatch,
   } from "../types";
 
   let duprToken = $state("");
@@ -12,6 +13,19 @@
   let results = $state<ApiSearchResponse | null>(null);
   let player = $state<ApiPlayerProfile | null>(null);
   let playerHistory = $state<ApiMatch[] | null>(null);
+
+  let visibleColumns = $state({
+    date: true,
+    event: false,
+    playerAndPartner: false,
+    opponent: true,
+    score: true,
+    result: true,
+  });
+
+  function toggleColumn(column: keyof typeof visibleColumns) {
+    visibleColumns[column] = !visibleColumns[column];
+  }
 
   async function searchUser(event: Event) {
     event.preventDefault();
@@ -115,7 +129,82 @@
   {#if player}
     <div class="card bg-base-100 border-base-300">
       <div class="card-body">
-        <h2 class="card-title">{player.fullName}</h2>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="card-title">{player.fullName}</h2>
+          <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-sm">Columns</div>
+            <ul
+              class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
+            >
+              <li>
+                <label class="label cursor-pointer">
+                  <span class="label-text">Date</span>
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-sm"
+                    checked={visibleColumns.date}
+                    onchange={() => toggleColumn("date")}
+                  />
+                </label>
+              </li>
+              <li>
+                <label class="label cursor-pointer">
+                  <span class="label-text">Event</span>
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-sm"
+                    checked={visibleColumns.event}
+                    onchange={() => toggleColumn("event")}
+                  />
+                </label>
+              </li>
+              <li>
+                <label class="label cursor-pointer">
+                  <span class="label-text">Player and Partner</span>
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-sm"
+                    checked={visibleColumns.playerAndPartner}
+                    onchange={() => toggleColumn("playerAndPartner")}
+                  />
+                </label>
+              </li>
+              <li>
+                <label class="label cursor-pointer">
+                  <span class="label-text">Opponent</span>
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-sm"
+                    checked={visibleColumns.opponent}
+                    onchange={() => toggleColumn("opponent")}
+                  />
+                </label>
+              </li>
+              <li>
+                <label class="label cursor-pointer">
+                  <span class="label-text">Score</span>
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-sm"
+                    checked={visibleColumns.score}
+                    onchange={() => toggleColumn("score")}
+                  />
+                </label>
+              </li>
+              <li>
+                <label class="label cursor-pointer">
+                  <span class="label-text">Result</span>
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-sm"
+                    checked={visibleColumns.result}
+                    onchange={() => toggleColumn("result")}
+                  />
+                </label>
+              </li>
+            </ul>
+          </div>
+        </div>
         <p>Location: {player.shortAddress}</p>
         <p>Doubles DUPR: {player.ratings.doubles}</p>
 
@@ -124,12 +213,24 @@
             <table class="table table-zebra">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Event</th>
-                  <th class="min-w-[25ch]">Player and Partner</th>
-                  <th class="min-w-[25ch]">Opponent</th>
-                  <th>Score</th>
-                  <th>Result</th>
+                  {#if visibleColumns.date}
+                    <th>Date</th>
+                  {/if}
+                  {#if visibleColumns.event}
+                    <th>Event</th>
+                  {/if}
+                  {#if visibleColumns.playerAndPartner}
+                    <th class="min-w-[25ch]">Player and Partner</th>
+                  {/if}
+                  {#if visibleColumns.opponent}
+                    <th class="min-w-[25ch]">Opponent</th>
+                  {/if}
+                  {#if visibleColumns.score}
+                    <th>Score</th>
+                  {/if}
+                  {#if visibleColumns.result}
+                    <th>Result</th>
+                  {/if}
                 </tr>
               </thead>
               <tbody>
@@ -144,53 +245,68 @@
                       (team: ApiMatchTeam) => team !== playerTeam,
                     )}
                     <tr>
-                      <td>{new Date(match.eventDate).toLocaleDateString()}</td>
-                      <td>
-                        <div class="truncate">
-                          {match.eventName.slice(0, 20)}
-                        </div>
-                        <div class="text-sm opacity-70">{match.venue}</div>
-                      </td>
-                      <td>
-                        {#if playerTeam}
-                          {@html playerTeam.player1.id === player?.id
-                            ? `${playerTeam.player1.fullName} <span class="opacity-70">(${playerTeam.player1.postMatchRating.doubles})</span>`
-                            : `${playerTeam.player2.fullName} <span class="opacity-70">(${playerTeam.player2.postMatchRating.doubles})</span>`}
-                          <br />
-                          {@html playerTeam.player1.id === player?.id
-                            ? `${playerTeam.player2.fullName} <span class="opacity-70">(${playerTeam.player2.postMatchRating.doubles})</span>`
-                            : `${playerTeam.player1.fullName} <span class="opacity-70">(${playerTeam.player1.postMatchRating.doubles})</span>`}
-                        {/if}
-                      </td>
-                      <td>
-                        {#if opponentTeam}
-                          {@html `${opponentTeam.player1.fullName} <span class="opacity-70">(${opponentTeam.player1.postMatchRating.doubles})</span>`}
-                          <br />
-                          {@html `${opponentTeam.player2.fullName} <span class="opacity-70">(${opponentTeam.player2.postMatchRating.doubles})</span>`}
-                        {/if}
-                      </td>
-                      <td>
-                        {#if playerTeam}
-                          {playerTeam.game1}-{opponentTeam?.game1}
-                          {#if playerTeam.game2 !== undefined && playerTeam.game2 !== -1}
-                            , {playerTeam.game2}-{opponentTeam?.game2}
+                      {#if visibleColumns.date}
+                        <td>{new Date(match.eventDate).toLocaleDateString()}</td
+                        >
+                      {/if}
+                      {#if visibleColumns.event}
+                        <td>
+                          <div class="truncate">
+                            {match.eventName.slice(0, 20)}
+                          </div>
+                          <div class="text-sm opacity-70">{match.venue}</div>
+                        </td>
+                      {/if}
+                      {#if visibleColumns.playerAndPartner}
+                        <td>
+                          {#if playerTeam}
+                            {@html playerTeam.player1.id === player?.id
+                              ? `${playerTeam.player1.fullName} <span class="opacity-70">(${playerTeam.player1.postMatchRating.doubles})</span>`
+                              : `${playerTeam.player2.fullName} <span class="opacity-70">(${playerTeam.player2.postMatchRating.doubles})</span>`}
+                            <br />
+                            {@html playerTeam.player1.id === player?.id
+                              ? `${playerTeam.player2.fullName} <span class="opacity-70">(${playerTeam.player2.postMatchRating.doubles})</span>`
+                              : `${playerTeam.player1.fullName} <span class="opacity-70">(${playerTeam.player1.postMatchRating.doubles})</span>`}
                           {/if}
-                          {#if playerTeam.game3 !== undefined && playerTeam.game3 !== -1}
-                            , {playerTeam.game3}-{opponentTeam?.game3}
+                        </td>
+                      {/if}
+                      {#if visibleColumns.opponent}
+                        <td>
+                          {#if opponentTeam}
+                            {@html `${opponentTeam.player1.fullName} <span class="opacity-70">(${opponentTeam.player1.postMatchRating.doubles})</span>`}
+                            <br />
+                            {@html `${opponentTeam.player2.fullName} <span class="opacity-70">(${opponentTeam.player2.postMatchRating.doubles})</span>`}
                           {/if}
-                        {/if}
-                      </td>
-                      <td>
-                        {#if playerTeam}
-                          <span
-                            class="badge {playerTeam.winner
-                              ? 'badge-success'
-                              : 'badge-error'}"
-                          >
-                            {playerTeam.winner ? "W" : "L"}
-                          </span>
-                        {/if}
-                      </td>
+                        </td>
+                      {/if}
+                      {#if visibleColumns.score}
+                        <td>
+                          {#if playerTeam}
+                            {playerTeam.game1}-{opponentTeam?.game1}
+                            {#if playerTeam.game2 !== undefined && playerTeam.game2 !== -1}
+                              <br />
+                              {playerTeam.game2}-{opponentTeam?.game2}
+                            {/if}
+                            {#if playerTeam.game3 !== undefined && playerTeam.game3 !== -1}
+                              <br />
+                              {playerTeam.game3}-{opponentTeam?.game3}
+                            {/if}
+                          {/if}
+                        </td>
+                      {/if}
+                      {#if visibleColumns.result}
+                        <td>
+                          {#if playerTeam}
+                            <span
+                              class="badge {playerTeam.winner
+                                ? 'badge-success'
+                                : 'badge-error'}"
+                            >
+                              {playerTeam.winner ? "W" : "L"}
+                            </span>
+                          {/if}
+                        </td>
+                      {/if}
                     </tr>
                   {/if}
                 {/each}
