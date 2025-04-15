@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Svelte Side Panel Extension",
+  "name": "PB Insight",
   "version": "1.0.0",
-  "description": "A Chrome extension with side panel built using Svelte",
+  "description": "A Chrome extension for PB Insight",
   "side_panel": {
     "default_path": "index.html"
   },
