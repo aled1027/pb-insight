@@ -1,0 +1,1 @@
+Based on https://github.com/trentbrew/svelte5-chrome-extension
